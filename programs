@@ -1,0 +1,365 @@
+#include <stdio.h>
+int main() {
+ // Initialize the string
+ char str[] = "Hello world";
+ printf("Original string: %s\n\n", str);
+ printf("Performing bitwise AND with 127:\n");
+ for (int i = 0; str[i] != '\0'; i++) {
+ str[i] = str[i] & 127;
+ printf("%c", str[i]);
+ }
+ printf("\n\n");
+ printf("Performing bitwise OR with 127:\n");
+ for (int i = 0; str[i] != '\0'; i++) {
+ str[i] = str[i] | 127;
+ printf("%c", str[i]);
+ }
+ printf("\n\n");
+ printf("Performing bitwise XOR with 127:\n");
+ for (int i = 0; str[i] != '\0'; i++) {
+ str[i] = str[i] ^ 127;
+ printf("%c", str[i]);
+ }
+ printf("\n");
+ return 0;
+}
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
+public class CeaserCipher {
+ static Scanner sc = new Scanner(System.in);
+ static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+ public static void main(String[] args) throws IOException {
+ // TODO code application logic here
+ System.out.print("Enter any String: ");
+ String str = br.readLine();
+ System.out.print("\nEnter the Key: ");
+ int key = sc.nextInt();
+ String encrypted = encrypt(str, key);
+ System.out.println("\nEncrypted String is: " + encrypted);
+ String decrypted = decrypt(encrypted, key);
+ System.out.println("\nDecrypted String is: " + decrypted);
+ System.out.println("\n");
+ }
+ public static String encrypt(String str, int key) {
+ String encrypted = "";
+ for (int i = 0; i < str.length(); i++) {
+ int c = str.charAt(i);
+ if (Character.isUpperCase(c)) {
+c = c + (key % 26);
+ if (c > 'Z')
+ c = c - 26;
+ } else if (Character.isLowerCase(c)) {
+ c = c + (key % 26);
+ if (c > 'z')
+ c = c - 26;
+ }
+ encrypted += (char) c;
+ }
+ return encrypted;
+ }
+ public static String decrypt(String str, int key) {
+ String decrypted = "";
+ for (int i = 0; i < str.length(); i++) {
+ int c = str.charAt(i);
+ if (Character.isUpperCase(c)) {
+ c = c - (key % 26);
+ if (c < 'A')
+ c = c + 26;
+ } else if (Character.isLowerCase(c)) {
+ c = c - (key % 26);
+ if (c < 'a')
+ c = c + 26;
+ }
+ decrypted += (char) c;
+ }
+ return decrypted;
+ }
+}
+import java.util.Scanner;
+public class PlayfairCipher {
+ private char[][] matrix;
+ private String key;
+ private String alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ";
+ public PlayfairCipher(String key) {
+ this.key = key.toUpperCase().replaceAll("[^A-Z]", "");
+ this.matrix = generateMatrix();
+ }
+ private char[][] generateMatrix() {
+ char[][] matrix = new char[5][5];
+ String keyStr = this.key + this.alphabet;
+ int row = 0;
+ int col = 0;
+for (int i = 0; i < keyStr.length(); i++) {
+ char c = keyStr.charAt(i);
+ if (col == 5) {
+ col = 0;
+ row++;
+ }
+ if (row == 5) break;
+ if (!contains(matrix, c)) {
+ matrix[row][col] = c;
+ col++;
+ }
+ }
+ return matrix;
+ }
+ private boolean contains(char[][] matrix, char c) {
+ for (int i = 0; i < 5; i++) {
+ for (int j = 0; j < 5; j++) {
+ if (matrix[i][j] == c) return true;
+ }
+ }
+ return false;
+ }
+ public String encrypt(String plaintext) {
+ plaintext = plaintext.toUpperCase().replaceAll("[^A-Z]", "");
+ plaintext = plaintext.replaceAll("J", "I");
+ StringBuilder ciphertext = new StringBuilder();
+ for (int i = 0; i < plaintext.length(); i += 2) {
+ char a = plaintext.charAt(i);
+ char b = (i + 1 < plaintext.length()) ? plaintext.charAt(i + 1) : 'X';
+ int[] posA = findPosition(a);
+ int[] posB = findPosition(b);
+ char encryptedA, encryptedB;
+ if (posA[0] == posB[0]) {
+ encryptedA = matrix[posA[0]][(posA[1] + 1) % 5];
+ encryptedB = matrix[posB[0]][(posB[1] + 1) % 5];
+ } else if (posA[1] == posB[1]) {
+ encryptedA = matrix[(posA[0] + 1) % 5][posA[1]];
+ encryptedB = matrix[(posB[0] + 1) % 5][posB[1]];
+ } else {
+ encryptedA = matrix[posA[0]][posB[1]];
+ encryptedB = matrix[posB[0]][posA[1]];
+ }
+ ciphertext.append(encryptedA).append(encryptedB);
+ }
+ return ciphertext.toString();
+ }
+ public String decrypt(String ciphertext) {
+ StringBuilder plaintext = new StringBuilder();
+ for (int i = 0; i < ciphertext.length(); i += 2) {
+ char a = ciphertext.charAt(i);
+ char b = ciphertext.charAt(i + 1);
+int[] posA = findPosition(a);
+ int[] posB = findPosition(b);
+ char decryptedA, decryptedB;
+ if (posA[0] == posB[0]) {
+ decryptedA = matrix[posA[0]][(posA[1] + 4) % 5];
+ decryptedB = matrix[posB[0]][(posB[1] + 4) % 5];
+ } else if (posA[1] == posB[1]) {
+ decryptedA = matrix[(posA[0] + 4) % 5][posA[1]];
+ decryptedB = matrix[(posB[0] + 4) % 5][posB[1]];
+ } else {
+ decryptedA = matrix[posA[0]][posB[1]];
+ decryptedB = matrix[posB[0]][posA[1]];
+ }
+ plaintext.append(decryptedA).append(decryptedB);
+ }
+ return plaintext.toString();
+ }
+ private int[] findPosition(char c) {
+ int[] pos = new int[2];
+ for (int i = 0; i < 5; i++) {
+ for (int j = 0; j < 5; j++) {
+ if (matrix[i][j] == c) {
+ pos[0] = i;
+ pos[1] = j;
+ return pos;
+ }
+ }
+ }
+ return pos;
+ }
+ public static void main(String[] args) {
+ Scanner scanner = new Scanner(System.in);
+ System.out.println("Enter the key:");
+ String key = scanner.nextLine();
+ System.out.println("Enter the plaintext:");
+ String plaintext = scanner.nextLine();
+ PlayfairCipher cipher = new PlayfairCipher(key);
+ String ciphertext = cipher.encrypt(plaintext);
+ System.out.println("Encrypted text: " + ciphertext);
+ String decryptedText = cipher.decrypt(ciphertext);
+ System.out.println("Decrypted text: " + decryptedText);
+ scanner.close();
+ }
+}
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#define MAX_TEXT_LENGTH 1000
+#define MAX_KEY_LENGTH 100
+char vigenereTable[26][26];
+void generateVigenereTable() {
+ for (int i = 0; i < 26; i++) {
+ for (int j = 0; j < 26; j++) {
+ vigenereTable[i][j] = 'A' + (i + j) % 26;
+ }
+ }
+}
+void encryptVigenere(char *plaintext, char *key) {
+ int plaintextLength = strlen(plaintext);
+ int keyLength = strlen(key);
+ int keyIndex = 0;
+ for (int i = 0; i < plaintextLength; i++) {
+ if (isalpha(plaintext[i])) {
+ plaintext[i] = toupper(plaintext[i]);
+ plaintext[i] = vigenereTable[key[keyIndex] - 'A'][plaintext[i] - 'A'];
+ keyIndex = (keyIndex + 1) % keyLength;
+ }
+ }
+}
+void decryptVigenere(char *ciphertext, char *key) {
+ int ciphertextLength = strlen(ciphertext);
+ int keyLength = strlen(key);
+ int keyIndex = 0;
+ for (int i = 0; i < ciphertextLength; i++) {
+ if (isalpha(ciphertext[i])) {
+ ciphertext[i] = toupper(ciphertext[i]);
+ for (int j = 0; j < 26; j++) {
+ if (vigenereTable[key[keyIndex] - 'A'][j] == ciphertext[i]) {
+ ciphertext[i] = 'A' + j;
+ break;
+ }
+ }
+ keyIndex = (keyIndex + 1) % keyLength;
+ }
+ }
+}
+int main() {
+ generateVigenereTable();
+ char plaintext[MAX_TEXT_LENGTH];
+char key[MAX_KEY_LENGTH];
+ printf("Enter plaintext: ");
+ fgets(plaintext, sizeof(plaintext), stdin);
+ plaintext[strcspn(plaintext, "\n")] = '\0'; // Remove newline character
+ printf("Enter key: ");
+ fgets(key, sizeof(key), stdin);
+ key[strcspn(key, "\n")] = '\0'; // Remove newline character
+ encryptVigenere(plaintext, key);
+ printf("Encrypted text: %s\n", plaintext);
+ decryptVigenere(plaintext, key);
+ printf("Decrypted text: %s\n", plaintext);
+ return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#define MAX_TEXT_LENGTH 1000
+void encryptRailFence(char *plaintext, int key) {
+ int plaintextLength = strlen(plaintext);
+ char rail[key][plaintextLength];
+ for (int i = 0; i < key; i++) {
+ for (int j = 0; j < plaintextLength; j++) {
+ rail[i][j] = '\n';
+ }
+ }
+ int row = 0;
+ int direction = 0;
+ for (int i = 0; i < plaintextLength; i++) {
+ rail[row][i] = plaintext[i];
+ if (row == 0 || row == key - 1) {
+ direction = !direction;
+ }
+ row += direction ? 1 : -1;
+ }
+ printf("Encrypted text: ");
+ for (int i = 0; i < key; i++) {
+ for (int j = 0; j < plaintextLength; j++) {
+ if (rail[i][j] != '\n') {
+ printf("%c", rail[i][j]);
+ }
+ }
+ }
+ printf("\n");
+}
+void decryptRailFence(char *ciphertext, int key) {
+ int ciphertextLength = strlen(ciphertext);
+ char rail[key][ciphertextLength];
+ for (int i = 0; i < key; i++) {
+ for (int j = 0; j < ciphertextLength; j++) {
+ rail[i][j] = '\n';
+ }
+ }
+ int row = 0;
+ int direction = 0;
+ for (int i = 0; i < ciphertextLength; i++) {
+ rail[row][i] = '*';
+ if (row == 0 || row == key - 1) {
+ direction = !direction;
+ }
+ row += direction ? 1 : -1;
+ }
+int index = 0;
+ for (int i = 0; i < key; i++) {
+ for (int j = 0; j < ciphertextLength; j++) {
+ if (rail[i][j] == '*' && index < ciphertextLength) {
+ rail[i][j] = ciphertext[index++];
+ }
+ }
+ }
+ printf("Decrypted text: ");
+ row = 0;
+ direction = 0;
+ for (int i = 0; i < ciphertextLength; i++) {
+ printf("%c", rail[row][i]);
+ if (row == 0 || row == key - 1) {
+ direction = !direction;
+ }
+ row += direction ? 1 : -1;
+ }
+ printf("\n");
+}
+int main() {
+ char plaintext[MAX_TEXT_LENGTH];
+ int key;
+ printf("Enter plaintext: ");
+ fgets(plaintext, sizeof(plaintext), stdin);
+ plaintext[strcspn(plaintext, "\n")] = '\0'; // Remove newline character
+printf("Enter key: ");
+ scanf("%d", &key);
+ encryptRailFence(plaintext, key);
+ decryptRailFence(plaintext, key);
+ return 0;
+}
+#include<stdio.h>
+#include<string.h>
+int main() {
+ unsigned int a[3][3] = { { 6, 24, 1 }, { 13, 16, 10 }, { 20, 17, 15 } };
+ unsigned int b[3][3] = { { 8, 5, 10 }, { 21, 8, 21 }, { 21, 12, 8 } };
+ int i, j;
+ unsigned int c[20], d[20];
+ char msg[20];
+ int determinant = 0, t = 0;
+ ;
+ printf("Enter plain text\n ");
+ scanf("%s", msg);
+ for (i = 0; i < 3; i++) {
+ c[i] = msg[i] - 65;
+ printf("%d ", c[i]);
+ }
+ for (i = 0; i < 3; i++) {
+ t = 0;
+ for (j = 0; j < 3; j++) {
+ t = t + (a[i][j] * c[j]);
+ }
+ d[i] = t % 26;
+ }
+ printf("\nEncrypted Cipher Text :");
+ for (i = 0; i < 3; i++)
+ printf(" %c", d[i] + 65);
+ for (i = 0; i < 3; i++) {
+ t = 0;
+ for (j = 0; j < 3; j++) {
+ t = t + (b[i][j] * d[j]);
+ }
+ c[i] = t % 26
+}
+ printf("\nDecrypted Cipher Text :");
+ for (i = 0; i < 3; i++)
+ printf(" %c", c[i] + 65);
+ return 0;
+}
+
